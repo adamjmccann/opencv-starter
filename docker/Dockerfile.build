@@ -1,0 +1,29 @@
+FROM debian:jessie
+MAINTAINER Adam McCann <mccann232@gmail.com>
+
+ARG OPENCV_VERSION
+ENV OPENCV_VERSION ${OPENCV_VERSION:-3.2.0}
+
+ARG OPENCV_SHA=1d148e6543f0f666a98e99b31a69cf74be4c4790
+ARG OPENCV_URL=https://codeload.github.com/opencv/opencv/tar.gz/${OPENCV_VERSION}
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    libgtk2.0-dev \
+    pkg-config \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev
+
+RUN curl -fsSl ${OPENCV_URL} -o /usr/local/src/opencv.tar.gz \
+    && echo "${OPENCV_SHA}" /usr/local/src/opencv.tar.gz | sha1sum -c -
+
+RUN tar -xf /usr/local/src/opencv.tar.gz -C /usr/local/src \
+    && cd /usr/local/src/opencv-${OPENCV_VERSION} \
+    && cmake -H. -Bbuild \
+    && cd build \
+    && make -j7 \
+    && make install \
+    && cd / && rm /usr/local/src/opencv.tar.gz
